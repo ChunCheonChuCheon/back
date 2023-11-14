@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+    database:
+        image: mariadb:11
+        userns_mode: 'keep-id'
+        volumes:
+            - ./volumes/database/conf.d:/etc/mysql/conf.d:rw
+            - ./volumes/database/data:/var/lib/mysql:rw
+            - ./volumes/database/initdb.d:/docker-entrypoint-initdb.d:rw
+        env_file: .env
+        environment:
+            TZ: UTC
+        restart: always
+        ports:
+            - 3306:3306
+    app:
+        image: back
+        depends_on:
+            - database
+        build:
+            context: .
+            dockerfile: Dockerfile
+        ports:
+            - 3000:3000
+        env_file: .env
+        restart: always
