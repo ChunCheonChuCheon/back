@@ -3,12 +3,14 @@ import { AuthService } from '../auth/auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { z } from 'zod';
 import { AuthGuard } from '../auth/auth.guard';
+import { GroupService } from './group.service';
 
 @Controller('group')
 export class GroupController {
     constructor(
         private readonly auth: AuthService,
         private readonly prisma: PrismaService,
+        private readonly groupService: GroupService,
     ) {}
 
     @UseGuards(AuthGuard)
