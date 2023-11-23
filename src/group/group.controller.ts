@@ -7,26 +7,26 @@ import { GroupService } from './group.service';
 
 @Controller('group')
 export class GroupController {
-    constructor(
-        private readonly auth: AuthService,
-        private readonly prisma: PrismaService,
-        private readonly groupService: GroupService,
-    ) {}
+    constructor(private readonly groupService: GroupService) {}
 
     @UseGuards(AuthGuard)
     @Post()
     async createGroup(@Body() rawBody: unknown) {
         const body = z
             .object({
+                name: z.string(),
                 location: z.string(),
                 date: z.string(),
-                range: z.string(),
+                adminId: z.number(),
+                range: z.number(),
             })
             .parse(rawBody);
 
         return await this.groupService.createGroup(
+            body.name,
             body.location,
             body.date,
+            body.adminId,
             body.range,
         );
     }

@@ -29,6 +29,7 @@ model Group {
   name     String
   location String
   date     DateTime
+  range    Int
   admin    User     @relation(fields: [adminId], references: [id])
   adminId  Int
 
