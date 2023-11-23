@@ -11,44 +11,68 @@ datasource db {
 }
 
 model User {
-  id             Int     @id @default(autoincrement())
-  nickname       String
-  token          String
-  password       String
-  favoriteDishes Dish[] // 선호 메뉴, Dish 모델과의 관계 설정
-  groups         Group[] @relation("GroupMembers", fields: [adminId], references: [id])
+  id       Int     @id @default(autoincrement())
+  nickName String
+  manages  Group[]
+
+  // temporary attributes
+  loginId  String @unique
+  password String
+
+  // many to many attributes
+  UserGroup UserGroup[]
+  UserDish  UserDish[]
 }
 
 model Group {
-  id                Int      @id @default(autoincrement())
-  groupName         String
-  adminId           Int // user_id로 사용자 식별
-  location          String // OpenStreetMap 노드 정보
-  time              DateTime
-  favoriteDishes    Dish[] // 선호 메뉴, Dish 모델과의 관계 설정
-  recommendedDishes Dish[] // AI 추천 결과, Dish 모델과의 관계 설정
-  members           User[]   @relation("GroupMembers") // 그룹에 소속된 사용자
+  pin      Int      @id @default(autoincrement())
+  name     String
+  location String
+  date     DateTime
+  admin    User     @relation(fields: [adminId], references: [id])
+  adminId  Int
+
+  // many to many atrribute
+  UserGroup UserGroup[]
+}
+
+model Dish {
+  id   Int    @id @default(autoincrement())
+  name String
+  img  String
+
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId Int
+  //vector List for word embedding value (Not yet)
+
+  // many to many attribute
+  UserDish UserDish[]
 }
 
 model Restaurant {
   id        Int    @id @default(autoincrement())
   name      String
-  location  String // 식당 위치
-  openHours String // 영업시간
-  image     String // 식당 사진 링크
-  menuItems Dish[] // 식당의 주요 메뉴, Dish 모델과의 관계 설정
+  img       String
+  location  String
+  openTime  String
+  closeTime String
+  menu      Dish[]
+  //vector List for word embedding value
 }
 
-model Dish {
-  id          Int          @id @default(autoincrement())
-  name        String
-  image       String // 메뉴 사진 링크
-  vector      String // 메뉴 이름 벡터화
-  users       User[]       @relation("UserFavoriteDishes") // 사용자가 선호하는 메뉴 정보
-  restaurants Restaurant[] // 식당의 주요 메뉴 정보, Restaurant 모델과의 관계 설정
-  groups      Group[]      @relation("GroupFavoriteDishes") // 그룹의 선호 메뉴 정보
-  user        User?        @relation(fields: [userId], references: [id])
-  userId      Int?
-  group       Group?       @relation(fields: [groupId], references: [id])
-  groupId     Int?
+// many to many relations
+model UserGroup {
+  id      Int   @id @default(autoincrement())
+  user    User  @relation(fields: [userId], references: [id])
+  userId  Int
+  group   Group @relation(fields: [groupId], references: [pin])
+  groupId Int
+}
+
+model UserDish {
+  id     Int  @id @default(autoincrement())
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+  dish   Dish @relation(fields: [dishId], references: [id])
+  dishId Int
 }
