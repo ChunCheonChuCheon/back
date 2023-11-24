@@ -10,6 +10,12 @@ export class GroupController {
     constructor(private readonly groupService: GroupService) {}
 
     @UseGuards(AuthGuard)
+    @Get()
+    async getGroup(@Query('pin') pin: string) {
+        return await this.groupService.getGroup(pin);
+    }
+
+    @UseGuards(AuthGuard)
     @Post()
     async createGroup(@Body() rawBody: unknown) {
         const body = z
