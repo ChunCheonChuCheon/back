@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
 import * as jwt from 'jsonwebtoken';
+import { PrismaService } from '../prisma/prisma.service';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -13,10 +14,10 @@ export class AuthService {
         this.secret = secretValue;
     }
 
-    async login(id: string, password: string) {
+    async login(loginId: string, password: string) {
         const data = await this.prisma.user.findUnique({
             where: {
-                id,
+                loginId,
             },
         });
 

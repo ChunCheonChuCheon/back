@@ -11,6 +11,70 @@ datasource db {
 }
 
 model User {
-  id       String @id
+  id       Int     @id @default(autoincrement())
+  nickName String
+  manages  Group[]
+
+  // temporary attributes
+  loginId  String @unique
   password String
+
+  // many to many attributes
+  UserGroup UserGroup[]
+  UserDish  UserDish[]
+}
+
+model Group {
+  pin      Int      @id @default(autoincrement())
+  name     String
+  location String
+  date     DateTime
+  range    Int
+  admin    User     @relation(fields: [adminId], references: [id])
+  adminId  Int
+
+  // many to many atrribute
+  UserGroup UserGroup[]
+}
+
+model Dish {
+  id   Int    @id @default(autoincrement())
+  name String  
+  img  String
+  price Int
+
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId Int
+  //vector List for word embedding value (Not yet)
+
+  // many to many attribute
+  UserDish UserDish[]
+}
+
+model Restaurant {
+  id        Int    @id @default(autoincrement())
+  name      String
+  img       String
+  location  String
+  openTime  String
+  closeTime String
+  menu      Dish[]
+  //vector List for word embedding value
+}
+
+// many to many relations
+model UserGroup {
+  id      Int   @id @default(autoincrement())
+  user    User  @relation(fields: [userId], references: [id])
+  userId  Int
+  group   Group @relation(fields: [groupId], references: [pin])
+  groupId Int
+}
+
+model UserDish {
+  id     Int  @id @default(autoincrement())
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+  dish   Dish @relation(fields: [dishId], references: [id])
+  dishId Int
 }
