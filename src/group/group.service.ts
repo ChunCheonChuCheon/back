@@ -4,6 +4,21 @@ import { ZodDate, z } from 'zod';
 
 @Injectable()
 export class GroupService {
+    async getGroup(pin: string) {
+        const result = await this.prisma.group.findUnique({
+            where: {
+                pin: parseInt(pin),
+            },
+        });
+
+        console.log(result);
+
+        if (result === null) {
+            return { response: 'Group not found' };
+        } else {
+            return { response: 'Ok' };
+        }
+    }
     constructor(private readonly prisma: PrismaService) {}
     // Implements createGroup function which creates a group with the given location, date, and range and put database using prisma.
     async createGroup(
