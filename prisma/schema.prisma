@@ -73,10 +73,11 @@ model UserGroup {
   @@id([userId, groupId])
 }
 
-model UserDish {
-  id     Int  @id @default(autoincrement())
+model UserDish {  
   user   User @relation(fields: [userId], references: [id])
   userId Int
   dish   Dish @relation(fields: [dishId], references: [id])
   dishId Int
+
+  @@id([userId, dishId])
 }

@@ -1,11 +1,28 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ZodDate, z } from 'zod';
+import { find } from 'rxjs';
+import { DishService } from 'src/dish/dish.service';
 
 @Injectable()
 export class GroupService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly dish: DishService,
+    ) {}
 
+    /*
+        PIN 번호로 참가 요청시 FE에 띄워줄 정보들을 JSON 형태로 반환
+        {
+            groupInfo: {
+                name: string,
+                location: string,
+                date: Date,            
+                range: number,
+            },
+            recommendedDishes: {},
+        }
+    */
     async getGroup(pin: string, userId: number) {
         const result = await this.prisma.group.findUnique({
             where: {
@@ -30,8 +47,33 @@ export class GroupService {
                 },
             });
         }
+        const memberList = this.findMembers(pin);
 
         return this.getGroupInfo(pin);
+    }
+
+    async findMembers(pin: string) {
+        const result = await this.prisma.userGroup.findMany({
+            where: {
+                groupId: parseInt(pin),
+            },
+            select: {
+                userId: true,
+            },
+        });
+
+        console.log(result);
+
+        const temp = z
+            .object({
+                userId: z.number(),
+            })
+            .array()
+            .parse(result)
+            .map((item) => item.userId);
+
+        console.log(temp);
+        return result;
     }
 
     async getGroupInfo(pin: string) {
