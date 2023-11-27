@@ -5,10 +5,13 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class DishService {
     constructor(private readonly prisma: PrismaService) {}
 
-    async getDish(dishId: number) {
-        return await this.prisma.dish.findUnique({
+    async getFavoriteDishList(userId: number) {
+        return await this.prisma.userDish.findMany({
             where: {
-                id: dishId,
+                userId: userId,
+            },
+            select: {
+                dishId: true,
             },
         });
     }

@@ -48,31 +48,49 @@ export class GroupService {
             });
         }
         const memberList = this.findMembers(pin);
+        // memberList를 활용하여서, 그룹 멤버들이 좋아하는 음식의 리스트를 제작
+        const dishList = await Promise.all(
+            (await memberList).map(
+                async (member) =>
+                    await this.dish.getFavoriteDishList(member).then((data) =>
+                        z
+                            .object({ dishId: z.number() })
+                            .array()
+                            .parse(data)
+                            .map((item) => item.dishId),
+                    ),
+            ),
+        );
+
+        console.log(dishList);
 
         return this.getGroupInfo(pin);
     }
 
+    /*
+        그룹의 멤버들을 number 리스트 형태로 반환합니다.
+        ex) [1, 2, 3, 4, 5]
+    */
     async findMembers(pin: string) {
-        const result = await this.prisma.userGroup.findMany({
-            where: {
-                groupId: parseInt(pin),
-            },
-            select: {
-                userId: true,
-            },
-        });
+        const result = await this.prisma.userGroup
+            .findMany({
+                where: {
+                    groupId: parseInt(pin),
+                },
+                select: {
+                    userId: true,
+                },
+            })
+            .then((data) =>
+                z
+                    .object({ userId: z.number() })
+                    .array()
+                    .parse(data)
+                    .map((item) => item.userId),
+            );
 
         console.log(result);
 
-        const temp = z
-            .object({
-                userId: z.number(),
-            })
-            .array()
-            .parse(result)
-            .map((item) => item.userId);
-
-        console.log(temp);
         return result;
     }
 
