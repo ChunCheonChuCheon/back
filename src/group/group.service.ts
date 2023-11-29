@@ -113,22 +113,18 @@ export class GroupService {
     async createGroup(
         name: string,
         location: string,
-        date: string,
+        date: Date,
         adminId: number,
         range: number,
     ) {
-        /* UTC 기준의 시간을 UTC+9으로 수정 */
-        const koreanDate = new Date(date);
-        koreanDate.setHours(koreanDate.getHours() + 9);
-
         /* DB에 그룹 생성 */
         const result = await this.prisma.group.create({
             data: {
-                name: name,
-                location: location,
-                date: koreanDate,
-                adminId: adminId,
-                range: range,
+                name,
+                location,
+                date,
+                adminId,
+                range,
             },
         });
 

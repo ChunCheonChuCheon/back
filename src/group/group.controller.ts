@@ -29,7 +29,7 @@ export class GroupController {
             .object({
                 name: z.string(),
                 location: z.string(),
-                date: z.string(),
+                date: z.date(),
                 adminId: z.number(),
                 range: z.number(),
             })
