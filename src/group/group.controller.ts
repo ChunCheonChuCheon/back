@@ -23,13 +23,19 @@ export class GroupController {
     }
 
     @UseGuards(AuthGuard)
+    @Get('/recommendation-list')
+    async getGroupRecommendation(@Query('pin') pin: string) {
+        return await this.groupService.getGroupRecommendation(pin);
+    }
+
+    @UseGuards(AuthGuard)
     @Post()
     async createGroup(@Body() rawBody: unknown) {
         const body = z
             .object({
                 name: z.string(),
-                location: z.string(),
-                date: z.date(),
+                location: z.array(z.number()),
+                date: z.string(),
                 adminId: z.number(),
                 range: z.number(),
             })
@@ -37,8 +43,9 @@ export class GroupController {
 
         return await this.groupService.createGroup(
             body.name,
-            body.location,
-            body.date,
+            body.location[0],
+            body.location[1],
+            new Date(body.date),
             body.adminId,
             body.range,
         );

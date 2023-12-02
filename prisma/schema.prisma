@@ -22,12 +22,16 @@ model User {
   // many to many attributes
   UserGroup UserGroup[]
   UserDish  UserDish[]
+  UserCategory UserCategory[]
 }
+
+
 
 model Group {
   pin      Int      @id @default(autoincrement())
   name     String
-  location String
+  locationX Decimal @db.Decimal(10, 7)
+  locationY Decimal @db.Decimal(10, 7)
   date     DateTime
   range    Int
   admin    User     @relation(fields: [adminId], references: [id])
@@ -56,11 +60,21 @@ model Restaurant {
   id        Int    @id @default(autoincrement())
   name      String
   img       String
-  location  String
+  locationX Decimal @db.Decimal(10, 7)
+  locationY Decimal @db.Decimal(10, 7)
   openTime  String
   closeTime String
+  address String
+  category  String
   menu      Dish[]
   //vector List for word embedding value
+}
+
+model Category{
+  id   Int    @id @default(autoincrement())
+  name String
+  
+  UserCategory UserCategory[]
 }
 
 // many to many relations
@@ -80,4 +94,13 @@ model UserDish {
   dishId Int
 
   @@id([userId, dishId])
+}
+
+model UserCategory {  
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId Int
+
+  @@id([userId, categoryId])
 }
