@@ -1,6 +1,7 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { z } from 'zod';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('user')
 export class UserController {
@@ -16,5 +17,22 @@ export class UserController {
             .parse(rawBody);
 
         await this.userService.register(body.id, body.password);
+    }
+
+    @UseGuards(AuthGuard)
+    @Post('survey')
+    async submitSurvey(@Body() rawBody: unknown, @Request() request: any) {
+        const body = z
+            .object({
+                survey: z.array(
+                    z.object({
+                        category: z.number(),
+                        score: z.number(),
+                    }),
+                ),
+            })
+            .parse(rawBody);
+
+        await this.userService.submitSurvey(body.survey, request.user.userId);
     }
 }
