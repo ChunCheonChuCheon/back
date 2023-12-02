@@ -62,8 +62,8 @@ model Restaurant {
   img       String
   locationX Decimal @db.Decimal(10, 7)
   locationY Decimal @db.Decimal(10, 7)
-  openTime  String
-  closeTime String
+  openTime  String?
+  closeTime String?
   address String
   category  String
   menu      Dish[]

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConsoleLogger, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ZodDate, z } from 'zod';
 import { find } from 'rxjs';
@@ -13,33 +13,7 @@ export class GroupService {
     ) {}
 
     /*
-        PIN 번호로 참가 요청시 FE에 띄워줄 정보들을 JSON 형태로 반환
-        {
-            groupInfo: {
-                name: string,
-                location: string,
-                date: Date,            
-                range: number,
-            }            
-        }
-    */
-    /*
-        {            
-            TOP3 : [
-                {
-                    "name" : "한식",
-                    "vote" : 5
-                },
-                {
-                    "name" : "버거",
-                    "vote" : 4
-                },
-                {
-                    "name" : "중식",
-                    "vote" : 3
-                },
-            ],            
-        }
+        
 
         {
             recommendedRestaurants: [
@@ -50,20 +24,7 @@ export class GroupService {
                 },
             ]
         }
-
-        {
-            survey: [
-                {
-                    "category" : 1,
-                    "score" : 1
-                },
-                {
-                    "category" : 2,
-                    "score" : 0
-                },
-                ...
-            ]
-        }
+        
    */
 
     /* GET */
@@ -95,7 +56,7 @@ export class GroupService {
         return this.getGroupInfo(pin);
     }
 
-    async getGroupRecommendation(pin: string) {
+    async getGroupSurveyResult(pin: string) {
         const memberList = await this.findMembers(pin);
 
         // memberList를 활용하여서, 그룹 멤버들의 카테고리 별 선호도를 구함
@@ -168,6 +129,64 @@ export class GroupService {
         });
 
         return { top3Category, groupSize, noResponseNumber };
+    }
+
+    async getGroupRecommendation(
+        pin: string,
+        top3Category: { category: string; vote: number }[],
+    ) {
+        //각 카테고리별 음식점 리스트를 가져와서 후보군들로 선정
+        const candidateRestaurants = await Promise.all(
+            top3Category.map(async (item) => {
+                return await this.prisma.restaurant.findMany({
+                    where: {
+                        category: item.category,
+                    },
+                    select: {
+                        id: true,
+                        locationX: true,
+                        locationY: true,
+                    },
+                });
+            }),
+        );
+        if (candidateRestaurants === null) {
+            return [];
+        }
+
+        // 그룹의 위도 경도를 가져와서 차후에 음식점과의 거리 계산에 활용
+        const groupLocation = await this.prisma.group.findUnique({
+            where: {
+                pin: parseInt(pin),
+            },
+            select: {
+                locationX: true,
+                locationY: true,
+            },
+        });
+        if (groupLocation === null) {
+            throw new NotFoundException(
+                '그룹 location을 찾던중 해당하는 그룹 정보를 차지 못했습니다.',
+            );
+        }
+
+        const distanceList = candidateRestaurants.map(
+            (restaurantListGroupByCategory) =>
+                restaurantListGroupByCategory
+                    .map((restaurant) => {
+                        const distance = this.haversine(
+                            Number(groupLocation.locationX),
+                            Number(groupLocation.locationY),
+                            Number(restaurant.locationX),
+                            Number(restaurant.locationY),
+                        );
+                        return { id: restaurant.id, distance };
+                    })
+                    .sort((a, b) => a.distance - b.distance)
+                    .slice(0, 3),
+        );
+
+        return { recommendation: distanceList.flat() };
     }
 
     /* POST */
@@ -252,5 +271,28 @@ export class GroupService {
                 score: true,
             },
         });
+    }
+
+    toRadians(degrees: number): number {
+        return degrees * (Math.PI / 180);
+    }
+
+    haversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
+        const R = 6371; // 지구의 반지름 (단위: 킬로미터)
+
+        const dLat = this.toRadians(lat2 - lat1);
+        const dLon = this.toRadians(lon2 - lon1);
+
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(this.toRadians(lat1)) *
+                Math.cos(this.toRadians(lat2)) *
+                Math.sin(dLon / 2) *
+                Math.sin(dLon / 2);
+
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        const distance = R * c;
+        return distance;
     }
 }
