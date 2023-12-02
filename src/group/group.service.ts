@@ -114,8 +114,9 @@ export class GroupService {
         );
 
         // 카테고리 별 점수 합산
+        const categoryNumber = await this.prisma.category.count();
         const categorySummation: number[] = Array.from(
-            { length: categoryList.length ? categoryList[0].length : 0 },
+            { length: categoryNumber },
             (_, columnIndex) =>
                 categoryList.reduce(
                     (acc, member) => acc + (member[columnIndex] || 0),
@@ -151,9 +152,22 @@ export class GroupService {
             }),
         );
 
-        console.log(top3Category);
+        // 그룹 인원수 가져오기
+        const groupSize = await this.prisma.userGroup.count({
+            where: {
+                groupId: parseInt(pin),
+            },
+        });
 
-        return { top3: top3Category };
+        // 무응답자 수 가져오기
+        let noResponseNumber = 0;
+        categoryList.forEach((item) => {
+            if (item.length !== categoryNumber) {
+                noResponseNumber++;
+            }
+        });
+
+        return { top3Category, groupSize, noResponseNumber };
     }
 
     /* POST */
@@ -208,8 +222,6 @@ export class GroupService {
                     .parse(data)
                     .map((item) => item.userId),
             );
-
-        console.log(result);
 
         return result;
     }
