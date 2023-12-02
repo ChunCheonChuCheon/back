@@ -3,9 +3,10 @@ import { GroupService } from './group.service';
 import { GroupController } from './group.controller';
 import { AuthModule } from '../auth/auth.module';
 import { PrismaModule } from '../prisma/prisma.module';
+import { DishModule } from 'src/dish/dish.module';
 
 @Module({
-    imports: [AuthModule, PrismaModule],
+    imports: [AuthModule, PrismaModule, DishModule],
     providers: [GroupService],
     controllers: [GroupController],
 })

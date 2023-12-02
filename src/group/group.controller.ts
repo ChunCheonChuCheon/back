@@ -1,9 +1,18 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Get,
+    Post,
+    Query,
+    UseGuards,
+    Request,
+} from '@nestjs/common';
 import { AuthService } from '../auth/auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { z } from 'zod';
 import { AuthGuard } from '../auth/auth.guard';
 import { GroupService } from './group.service';
+import { raw } from '@prisma/client/runtime/library';
 
 @Controller('group')
 export class GroupController {
@@ -11,8 +20,33 @@ export class GroupController {
 
     @UseGuards(AuthGuard)
     @Get()
-    async getGroup(@Query('pin') pin: string) {
-        return await this.groupService.getGroup(pin);
+    async getGroup(@Query('pin') pin: string, @Request() request: any) {
+        return await this.groupService.getGroup(pin, request.user.userId);
+    }
+
+    @UseGuards(AuthGuard)
+    @Get('/survey')
+    async getGroupSurveyResult(@Query('pin') pin: string) {
+        return await this.groupService.getGroupSurveyResult(pin);
+    }
+
+    @UseGuards(AuthGuard)
+    @Get('/recommendation')
+    async getGroupRecommendation(
+        @Query('pin') pin: string,
+        @Body() rawBody: any,
+    ) {
+        const body = z
+            .object({
+                top3Category: z.array(
+                    z.object({ category: z.string(), vote: z.number() }),
+                ),
+            })
+            .parse(rawBody);
+        return await this.groupService.getGroupRecommendation(
+            pin,
+            body.top3Category,
+        );
     }
 
     @UseGuards(AuthGuard)
@@ -21,7 +55,7 @@ export class GroupController {
         const body = z
             .object({
                 name: z.string(),
-                location: z.string(),
+                location: z.array(z.number()),
                 date: z.string(),
                 adminId: z.number(),
                 range: z.number(),
@@ -30,8 +64,9 @@ export class GroupController {
 
         return await this.groupService.createGroup(
             body.name,
-            body.location,
-            body.date,
+            body.location[0],
+            body.location[1],
+            new Date(body.date),
             body.adminId,
             body.range,
         );
