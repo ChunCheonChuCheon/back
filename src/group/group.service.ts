@@ -24,78 +24,21 @@ export class GroupService {
         }
     */
     /*
-        {
-            groupSize : 11,
-            groupFavorites: [
+        {            
+            TOP3 : [
                 {
-                    "category": "족발/보쌈",
-                    "numberOfVotes" : 7
+                    "name" : "한식",
+                    "vote" : 5
                 },
                 {
-                    "category": "돈까스",
-                    "numberOfVotes" : 5
+                    "name" : "버거",
+                    "vote" : 4
                 },
                 {
-                    "category": "회",
-                    "numberOfVotes" : 4
+                    "name" : "중식",
+                    "vote" : 3
                 },
-                {
-                    "category": "일식",
-                    "numberOfVotes" : 3
-                },
-                {
-                    "category": "고기/구이",
-                    "numberOfVotes" : 3
-                },
-                {
-                    "category": "피자",
-                    "numberOfVotes" : 3
-                },
-                {
-                    "category": "찜/탕/찌개",
-                    "numberOfVotes" : 3
-                },
-                {
-                    "category": "양식",
-                    "numberOfVotes" : 3
-                },
-                {
-                    "category": "중식",
-                    "numberOfVotes" : 3
-                },
-                {
-                    "category": "아시안",
-                    "numberOfVotes" : 3
-                },
-                {
-                    "category": "치킨",
-                    "numberOfVotes" : 3
-                },
-                {
-                    "category": "백반",
-                    "numberOfVotes" : 3
-                },
-                {
-                    "category": "죽",
-                    "numberOfVotes" : 3
-                },
-                {
-                    "category": "국수",
-                    "numberOfVotes" : 3
-                },
-                {
-                    "category": "버거",
-                    "numberOfVotes" : 3
-                },
-                {
-                    "category": "분식",
-                    "numberOfVotes" : 3
-                },
-                {
-                    "category": "국밥",
-                    "numberOfVotes" : 3
-                },
-            ]            
+            ],            
         }
 
         {
@@ -105,6 +48,20 @@ export class GroupService {
                     "location": [37.555, 126.555],
                     "category": "버거",                    
                 },
+            ]
+        }
+
+        {
+            survey: [
+                {
+                    "category" : 1,
+                    "score" : 1
+                },
+                {
+                    "category" : 2,
+                    "score" : 0
+                },
+                ...
             ]
         }
    */
@@ -139,30 +96,65 @@ export class GroupService {
     }
 
     async getGroupRecommendation(pin: string) {
-        const memberList = this.findMembers(pin);
-        // memberList를 활용하여서, 그룹 멤버들이 좋아하는 음식의 리스트를 제작
-        const dishList = await Promise.all(
-            (await memberList).map(
-                async (member) =>
-                    await this.dish.getFavoriteDishList(member).then((data) =>
-                        z
-                            .object({ dishId: z.number() })
-                            .array()
-                            .parse(data)
-                            .map((item) => item.dishId),
-                    ),
-            ),
+        const memberList = await this.findMembers(pin);
+
+        // memberList를 활용하여서, 그룹 멤버들의 카테고리 별 선호도를 구함
+        const categoryList = await Promise.all(
+            memberList.map(async (member) => {
+                const categoryList = await this.getFavoriteCategoryList(member);
+                return z
+                    .object({
+                        categoryId: z.number(),
+                        score: z.number(),
+                    })
+                    .array()
+                    .parse(categoryList)
+                    .map((item) => item.score);
+            }),
         );
 
-        console.log(dishList);
+        // 카테고리 별 점수 합산
+        const categorySummation: number[] = Array.from(
+            { length: categoryList.length ? categoryList[0].length : 0 },
+            (_, columnIndex) =>
+                categoryList.reduce(
+                    (acc, member) => acc + (member[columnIndex] || 0),
+                    0,
+                ),
+        );
 
-        return dishList;
+        // 인덱싱 후 내림차순 정렬 후 상위 3개를 추출
+        const indexedCategorySummation = categorySummation
+            .map((value, index) => ({ index, value }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 3);
+
+        // 인덱스에 맞게 카테고리 이름을 가져오고 JSON 형태로 반환
+        const top3Category = await Promise.all(
+            indexedCategorySummation.map(async (item) => {
+                const category = await this.prisma.category.findUnique({
+                    where: {
+                        id: item.index + 1,
+                    },
+                });
+
+                if (category === null) {
+                    throw new NotFoundException(
+                        '카테고리 정보를 탐색중 오류가 발생했습니다. - 백엔드 잘못',
+                    );
+                }
+
+                return {
+                    name: category.name,
+                    vote: item.value,
+                };
+            }),
+        );
+
+        console.log(top3Category);
+
+        return { top3: top3Category };
     }
-
-    /*
-        그룹의 멤버들을 number 리스트 형태로 반환합니다.
-        ex) [1, 2, 3, 4, 5]
-    */
 
     /* POST */
     async createGroup(
@@ -236,5 +228,17 @@ export class GroupService {
         } else {
             return result;
         }
+    }
+
+    async getFavoriteCategoryList(userId: number) {
+        return await this.prisma.userCategory.findMany({
+            where: {
+                userId: userId,
+            },
+            select: {
+                categoryId: true,
+                score: true,
+            },
+        });
     }
 }

@@ -15,21 +15,22 @@ export class AuthService {
     }
 
     async login(loginId: string, password: string) {
-        const data = await this.prisma.user.findUnique({
+        const user = await this.prisma.user.findUnique({
             where: {
                 loginId,
             },
         });
 
-        if (!data) {
+        if (!user) {
             throw new Error('User not found');
         }
 
-        if (data.password !== password) {
+        if (user.password !== password) {
             throw new Error('Password is incorrect');
         }
+
         return {
-            access_token: jwt.sign(data, this.secret),
+            access_token: jwt.sign({ userId: user.id }, this.secret),
         };
     }
 }

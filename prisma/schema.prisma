@@ -101,6 +101,7 @@ model UserCategory {
   userId Int
   category   Category @relation(fields: [categoryId], references: [id])
   categoryId Int
+  score Int
 
   @@id([userId, categoryId])
 }

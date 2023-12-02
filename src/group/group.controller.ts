@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Get,
+    Post,
+    Query,
+    UseGuards,
+    Request,
+} from '@nestjs/common';
 import { AuthService } from '../auth/auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { z } from 'zod';
@@ -12,14 +20,8 @@ export class GroupController {
 
     @UseGuards(AuthGuard)
     @Get()
-    async getGroup(@Query('pin') pin: string, @Body() rawBody: unknown) {
-        console.log(rawBody);
-        const body = z
-            .object({
-                userId: z.number(),
-            })
-            .parse(rawBody);
-        return await this.groupService.getGroup(pin, body.userId);
+    async getGroup(@Query('pin') pin: string, @Request() request: any) {
+        return await this.groupService.getGroup(pin, request.user.userId);
     }
 
     @UseGuards(AuthGuard)
