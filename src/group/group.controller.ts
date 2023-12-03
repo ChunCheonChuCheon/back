@@ -51,13 +51,12 @@ export class GroupController {
 
     @UseGuards(AuthGuard)
     @Post()
-    async createGroup(@Body() rawBody: unknown) {
+    async createGroup(@Body() rawBody: unknown, @Request() request: any) {
         const body = z
             .object({
                 name: z.string(),
                 location: z.array(z.number()),
                 date: z.string(),
-                adminId: z.number(),
                 range: z.number(),
             })
             .parse(rawBody);
@@ -67,7 +66,7 @@ export class GroupController {
             body.location[0],
             body.location[1],
             new Date(body.date),
-            body.adminId,
+            request.user.userId,
             body.range,
         );
     }

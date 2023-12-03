@@ -12,21 +12,6 @@ export class GroupService {
         private readonly dish: DishService,
     ) {}
 
-    /*
-        
-
-        {
-            recommendedRestaurants: [
-                {
-                    "name": "프랭크버거",
-                    "location": [37.555, 126.555],
-                    "category": "버거",                    
-                },
-            ]
-        }
-        
-   */
-
     /* GET */
     async getGroup(pin: string, userId: number) {
         const result = await this.prisma.group.findUnique({
