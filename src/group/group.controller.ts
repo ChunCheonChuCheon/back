@@ -32,21 +32,8 @@ export class GroupController {
 
     @UseGuards(AuthGuard)
     @Get('/recommendation')
-    async getGroupRecommendation(
-        @Query('pin') pin: string,
-        @Body() rawBody: any,
-    ) {
-        const body = z
-            .object({
-                top3Category: z.array(
-                    z.object({ category: z.string(), vote: z.number() }),
-                ),
-            })
-            .parse(rawBody);
-        return await this.groupService.getGroupRecommendation(
-            pin,
-            body.top3Category,
-        );
+    async getGroupRecommendation(@Query('pin') pin: string) {
+        return await this.groupService.getGroupRecommendation(pin);
     }
 
     @UseGuards(AuthGuard)

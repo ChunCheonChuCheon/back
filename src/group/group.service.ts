@@ -42,85 +42,20 @@ export class GroupService {
     }
 
     async getGroupSurveyResult(pin: string) {
-        const memberList = await this.findMembers(pin);
-
-        // memberList를 활용하여서, 그룹 멤버들의 카테고리 별 선호도를 구함
-        const categoryList = await Promise.all(
-            memberList.map(async (member) => {
-                const categoryList = await this.getFavoriteCategoryList(member);
-                return z
-                    .object({
-                        categoryId: z.number(),
-                        score: z.number(),
-                    })
-                    .array()
-                    .parse(categoryList)
-                    .map((item) => item.score);
-            }),
-        );
-
-        // 카테고리 별 점수 합산
-        const categoryNumber = await this.prisma.category.count();
-        const categorySummation: number[] = Array.from(
-            { length: categoryNumber },
-            (_, columnIndex) =>
-                categoryList.reduce(
-                    (acc, member) => acc + (member[columnIndex] || 0),
-                    0,
-                ),
-        );
-
-        // 인덱싱 후 내림차순 정렬 후 상위 3개를 추출
-        const indexedCategorySummation = categorySummation
-            .map((value, index) => ({ index, value }))
-            .sort((a, b) => b.value - a.value)
-            .slice(0, 3);
-
-        // 인덱스에 맞게 카테고리 이름을 가져오고 JSON 형태로 반환
-        const top3Category = await Promise.all(
-            indexedCategorySummation.map(async (item) => {
-                const category = await this.prisma.category.findUnique({
-                    where: {
-                        id: item.index + 1,
-                    },
-                });
-
-                if (category === null) {
-                    throw new NotFoundException(
-                        '카테고리 정보를 탐색중 오류가 발생했습니다. - 백엔드 잘못',
-                    );
-                }
-
-                return {
-                    name: category.name,
-                    vote: item.value,
-                };
-            }),
-        );
-
-        // 그룹 인원수 가져오기
+        const top3Category = await this.getTop3Category(pin);
+        const noResponseNumber = await this.getNoResponseNumber(pin);
         const groupSize = await this.prisma.userGroup.count({
             where: {
                 groupId: parseInt(pin),
             },
         });
 
-        // 무응답자 수 가져오기
-        let noResponseNumber = 0;
-        categoryList.forEach((item) => {
-            if (item.length !== categoryNumber) {
-                noResponseNumber++;
-            }
-        });
-
         return { top3Category, groupSize, noResponseNumber };
     }
 
-    async getGroupRecommendation(
-        pin: string,
-        top3Category: { category: string; vote: number }[],
-    ) {
+    async getGroupRecommendation(pin: string) {
         //각 카테고리별 음식점 리스트를 가져와서 후보군들로 선정
+        const top3Category = await this.getTop3Category(pin);
         const candidateRestaurants = await Promise.all(
             top3Category.map(async (item) => {
                 return await this.prisma.restaurant.findMany({
@@ -279,5 +214,79 @@ export class GroupService {
 
         const distance = R * c;
         return distance;
+    }
+
+    async getTop3Category(pin: string) {
+        const categoryList = await this.getUserServeyList(pin);
+
+        // 카테고리 별 점수 합산
+        const categoryNumber = await this.prisma.category.count();
+        const categorySummation: number[] = Array.from(
+            { length: categoryNumber },
+            (_, columnIndex) =>
+                categoryList.reduce(
+                    (acc, member) => acc + (member[columnIndex] || 0),
+                    0,
+                ),
+        );
+
+        // 인덱싱 후 내림차순 정렬 후 상위 3개를 추출
+        const indexedCategorySummation = categorySummation
+            .map((value, index) => ({ index, value }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 3);
+
+        // 인덱스에 맞게 카테고리 이름을 가져오고 JSON 형태로 반환
+        return await Promise.all(
+            indexedCategorySummation.map(async (item) => {
+                const category = await this.prisma.category.findUnique({
+                    where: {
+                        id: item.index + 1,
+                    },
+                });
+
+                if (category === null) {
+                    throw new NotFoundException(
+                        '카테고리 정보를 탐색중 오류가 발생했습니다. - 백엔드 잘못',
+                    );
+                }
+
+                return {
+                    category: category.name,
+                    score: item.value,
+                };
+            }),
+        );
+    }
+
+    async getUserServeyList(pin: string) {
+        const memberList = await this.findMembers(pin);
+        return await Promise.all(
+            memberList.map(async (member) => {
+                const categoryList = await this.getFavoriteCategoryList(member);
+                return z
+                    .object({
+                        categoryId: z.number(),
+                        score: z.number(),
+                    })
+                    .array()
+                    .parse(categoryList)
+                    .map((item) => item.score);
+            }),
+        );
+    }
+
+    async getNoResponseNumber(pin: string) {
+        const categoryNumber = await this.prisma.category.count();
+        const categoryList = await this.getUserServeyList(pin);
+
+        // 무응답자 수 계산, 카테고리 수와 응답 수가 다른 경우 무응답자로 간주
+        let noResponseNumber = 0;
+        categoryList.forEach((item) => {
+            if (item.length !== categoryNumber) {
+                noResponseNumber++;
+            }
+        });
+        return noResponseNumber;
     }
 }
