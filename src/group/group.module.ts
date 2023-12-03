@@ -6,7 +6,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { DishModule } from 'src/dish/dish.module';
 
 @Module({
-    imports: [AuthModule, PrismaModule, DishModule],
+    imports: [AuthModule, PrismaModule, DishModule, GroupModule],
     providers: [GroupService],
     controllers: [GroupController],
 })
