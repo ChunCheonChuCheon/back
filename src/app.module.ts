@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { GroupModule } from './group/group.module';
 import { DishModule } from './dish/dish.module';
 import { ConfigModule } from '@nestjs/config';
+import { RestaurantModule } from './restaurant/restaurant.module';
 
 @Module({
     imports: [
@@ -16,6 +17,7 @@ import { ConfigModule } from '@nestjs/config';
         AuthModule,
         GroupModule,
         DishModule,
+        RestaurantModule,
     ],
     providers: [],
 })
