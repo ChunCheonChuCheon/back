@@ -1,4 +1,11 @@
-import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Get,
+    Post,
+    Request,
+    UseGuards,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { z } from 'zod';
 import { AuthGuard } from 'src/auth/auth.guard';
@@ -34,5 +41,11 @@ export class UserController {
             .parse(rawBody);
 
         await this.userService.submitSurvey(body.survey, request.user.userId);
+    }
+
+    @UseGuards(AuthGuard)
+    @Get('respondent')
+    async isRespondent(@Request() request: any) {
+        return await this.userService.isRespondent(request.user.userId);
     }
 }
