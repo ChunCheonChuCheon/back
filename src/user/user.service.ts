@@ -5,6 +5,19 @@ import { PrismaService } from '../prisma/prisma.service';
 export class UserService {
     constructor(private readonly prisma: PrismaService) {}
 
+    /* GET */
+    async isRespondent(userId: number) {
+        const result = await this.prisma.userCategory.findMany({
+            where: {
+                userId: userId,
+            },
+        });
+
+        const categoryCount = await this.prisma.category.count();
+
+        return { result: result.length === categoryCount ? true : false };
+    }
+
     /* POST */
     async register(loginId: string, password: string) {
         await this.prisma.user.create({
