@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { PrismaService } from '../prisma/prisma.service';
 import { randomUUID } from 'crypto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -20,17 +21,16 @@ export class AuthService {
                 loginId,
             },
         });
-
-        if (!user) {
-            throw new Error('User not found');
+        if (user === null) {
+            throw new NotFoundException('로그인 실패');
         }
 
-        if (user.password !== password) {
-            throw new Error('Password is incorrect');
+        if (user && (await bcrypt.compare(password, user.password))) {
+            return {
+                access_token: jwt.sign({ userId: user.id }, this.secret),
+            };
+        } else {
+            throw new NotFoundException('로그인 실패');
         }
-
-        return {
-            access_token: jwt.sign({ userId: user.id }, this.secret),
-        };
     }
 }
