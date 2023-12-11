@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
+import { promisify } from 'util';
 
 @Injectable()
 export class UserService {
@@ -21,14 +22,21 @@ export class UserService {
 
     /* POST */
     async register(loginId: string, password: string) {
-        const salt = await bcrypt.genSalt();
-        const hashedPassword = await bcrypt.hash(password, salt);
+        /* 비밀번호 단방향 암호화 */
+        const randomBytesPromise = promisify(crypto.randomBytes);
+        const pbkdf2Promise = promisify(crypto.pbkdf2);
 
+        const salt = (await randomBytesPromise(32)).toString('base64');
+        const key = await pbkdf2Promise(password, salt, 256, 64, 'sha512');
+        const hashedPassword = key.toString('base64');
+
+        /* 유저 생성 */
         await this.prisma.user.create({
             data: {
                 nickName: '기본닉네임',
                 loginId: loginId,
                 password: hashedPassword,
+                salt: salt,
             },
         });
     }

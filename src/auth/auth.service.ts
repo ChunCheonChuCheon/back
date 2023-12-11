@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { PrismaService } from '../prisma/prisma.service';
-import { randomUUID } from 'crypto';
-import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
+import { promisify } from 'util';
 
 @Injectable()
 export class AuthService {
@@ -25,7 +25,12 @@ export class AuthService {
             throw new NotFoundException('로그인 실패');
         }
 
-        if (user && (await bcrypt.compare(password, user.password))) {
+        const pbkdf2Promise = promisify(crypto.pbkdf2);
+
+        const key = await pbkdf2Promise(password, user.salt, 256, 64, 'sha512');
+        const hashedPassword = key.toString('base64');
+
+        if (user.password === hashedPassword) {
             return {
                 access_token: jwt.sign({ userId: user.id }, this.secret),
             };

@@ -18,6 +18,7 @@ model User {
   // temporary attributes
   loginId  String @unique
   password String
+  salt     String
 
   // many to many attributes
   UserGroup UserGroup[]
