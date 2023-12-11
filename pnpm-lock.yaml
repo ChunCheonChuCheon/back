@@ -22,12 +22,9 @@ dependencies:
   '@types/jsonwebtoken':
     specifier: ^9.0.5
     version: 9.0.5
-<<<<<<< HEAD
-=======
   bcrypt:
     specifier: ^5.1.1
     version: 5.1.1
->>>>>>> 00afd92040225d5ad813646ff76b1371c8a5ab5c
   helmet:
     specifier: ^7.1.0
     version: 7.1.0
@@ -691,8 +688,6 @@ packages:
     hasBin: true
     dev: true
 
-<<<<<<< HEAD
-=======
   /agent-base@6.0.2:
     resolution: {integrity: sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ==}
     engines: {node: '>= 6.0.0'}
@@ -702,7 +697,6 @@ packages:
       - supports-color
     dev: false
 
->>>>>>> 00afd92040225d5ad813646ff76b1371c8a5ab5c
   /ajv-formats@2.1.1:
     resolution: {integrity: sha512-Wx0Kx52hxE7C18hkMEggYlEifqWZtYaRgouJor+WMdPnQyEK13vgEWyVNup7SoeeoLMsr4kf5h6dOW11I15MUA==}
     peerDependenciesMeta:
