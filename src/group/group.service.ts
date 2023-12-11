@@ -118,9 +118,22 @@ export class GroupService {
         adminId: number,
         range: number,
     ) {
+        /**
+         *  0 ~ 999,999의 값을 가지는 랜덤 PIN 생성
+         *  이미 존재하는 값일 경우 다시 생성
+         *  그룹의 LifeCycle이 아직 정해지지 않아 임시로 작성함
+         */
+        let randomPin = Math.floor(Math.random() * 1000000);
+        while (
+            await this.prisma.group.findUnique({ where: { pin: randomPin } })
+        ) {
+            randomPin = Math.floor(Math.random() * 1000000);
+        }
+
         /* DB에 그룹 생성 */
         const result = await this.prisma.group.create({
             data: {
+                pin: randomPin,
                 name,
                 locationX,
                 locationY,
