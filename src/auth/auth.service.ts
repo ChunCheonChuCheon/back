@@ -38,4 +38,19 @@ export class AuthService {
             throw new NotFoundException('로그인 실패');
         }
     }
+
+    async lightLogin(loginId: string) {
+        const user = await this.prisma.user.findUnique({
+            where: {
+                loginId,
+            },
+        });
+        if (user === null) {
+            throw new NotFoundException('로그인 실패');
+        }
+
+        return {
+            access_token: jwt.sign({ userId: user.id }, this.secret),
+        };
+    }
 }

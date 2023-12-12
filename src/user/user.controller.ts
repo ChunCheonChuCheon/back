@@ -19,11 +19,12 @@ export class UserController {
         const body = z
             .object({
                 id: z.string(),
-                password: z.string(),
+                // password: z.string(),    // 라이트 버전을 위해 주석 처리
             })
             .parse(rawBody);
 
-        await this.userService.register(body.id, body.password);
+        return await this.userService.register(body.id);
+        //await this.userService.register(body.id, body.password);  // 라이트 버전을 위해 주석 처리
     }
 
     @UseGuards(AuthGuard)
