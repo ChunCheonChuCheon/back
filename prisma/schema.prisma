@@ -15,14 +15,6 @@ model User {
   nickName String
   manages  Group[]
 
-  // temporary attributes
-  // loginId  String @unique
-  // password String
-  // salt     String  
-  kakaoAccessToken String
-  kakaoRefreshToken String
-
-  // many to many attributes
   UserGroup UserGroup[]
   UserDish  UserDish[]
   UserCategory UserCategory[]
