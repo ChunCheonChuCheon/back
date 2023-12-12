@@ -29,9 +29,11 @@ export class AuthController {
     async kakaoCallback(@Query('code') code: string, @Req() req: any) {
         const result = await this.authService.kakaoLogin(code);
         console.log(result);
-        req.res.redirect(
-            `http://localhost:3000?access_token=${result.access_token}`,
-        );
+        req.header('access_token', result.access_token).status(200).send();
+        req.status(200).json({ access_token: result.access_token });
+        // req.res.redirect(
+        //     `http://localhost:3000?access_token=${result.access_token}`,
+        // );
     }
 
     @UseGuards(AuthGuard)
