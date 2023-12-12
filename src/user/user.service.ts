@@ -49,31 +49,31 @@ export class UserService {
     //     });
     // }
 
-    async register(loginId: string) {
-        /* 이미 존재하는 유저인지 확인 */
-        if (
-            await this.prisma.user.findUnique({
-                where: {
-                    loginId: loginId,
-                },
-            })
-        ) {
-            return this.auth.lightLogin(loginId);
-        }
+    // async register(loginId: string) {
+    //     /* 이미 존재하는 유저인지 확인 */
+    //     if (
+    //         await this.prisma.user.findUnique({
+    //             where: {
+    //                 loginId: loginId,
+    //             },
+    //         })
+    //     ) {
+    //         return this.auth.lightLogin(loginId);
+    //     }
 
-        /* 유저 생성 */
-        await this.prisma.user.create({
-            data: {
-                nickName: '기본닉네임',
-                loginId: loginId,
-                password: '기본비밀번호',
-                salt: '기본솔트',
-            },
-        });
+    //     /* 유저 생성 */
+    //     await this.prisma.user.create({
+    //         data: {
+    //             nickName: '기본닉네임',
+    //             loginId: loginId,
+    //             password: '기본비밀번호',
+    //             salt: '기본솔트',
+    //         },
+    //     });
 
-        /* 로그인 진행 */
-        return this.auth.lightLogin(loginId);
-    }
+    //     /* 로그인 진행 */
+    //     return this.auth.lightLogin(loginId);
+    // }
 
     async submitSurvey(
         survey: { category: number; score: number }[],

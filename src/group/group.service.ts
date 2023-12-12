@@ -13,7 +13,7 @@ export class GroupService {
     ) {}
 
     /* GET */
-    async getGroup(pin: string, userId: number) {
+    async getGroup(pin: string, userId: bigint) {
         const result = await this.prisma.group.findUnique({
             where: {
                 pin: parseInt(pin),
@@ -169,7 +169,7 @@ export class GroupService {
             })
             .then((data) =>
                 z
-                    .object({ userId: z.number() })
+                    .object({ userId: z.bigint() })
                     .array()
                     .parse(data)
                     .map((item) => item.userId),
@@ -190,11 +190,12 @@ export class GroupService {
                 '그룹 정보를 탐색중 오류가 발생했습니다. - 백엔드 잘못',
             );
         } else {
-            return result;
+            /* JSON에서의 BigInt Stringify를 위해 아래와 같이 작성 */
+            return { ...result, adminId: result.adminId.toString() };
         }
     }
 
-    async getFavoriteCategoryList(userId: number) {
+    async getFavoriteCategoryList(userId: bigint) {
         return await this.prisma.userCategory.findMany({
             where: {
                 userId: userId,
