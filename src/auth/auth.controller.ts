@@ -1,4 +1,15 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Get,
+    Header,
+    Post,
+    Query,
+    Redirect,
+    Req,
+    Res,
+    UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { raw } from '@prisma/client/runtime/library';
 import { z } from 'zod';
@@ -8,16 +19,19 @@ import { AuthGuard } from './auth.guard';
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
-    @Post('login')
-    async login(@Body() rawBody: unknown) {
-        const body = z
-            .object({
-                id: z.string(),
-                password: z.string(),
-            })
-            .parse(rawBody);
+    @Get('kakao-login')
+    @Redirect(
+        `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.KAKAO_CLIENT_ID}&redirect_uri=${process.env.KAKAO_REDIRECT_URI}&response_type=code`,
+    )
+    kakaoRedirect() {}
 
-        return await this.authService.login(body.id, body.password);
+    @Get('kakao/callback')
+    async kakaoCallback(@Query('code') code: string, @Req() req: any) {
+        const result = await this.authService.kakaoLogin(code);
+        console.log(result);
+        req.res.redirect(
+            `http://localhost:3000?access_token=${result.access_token}`,
+        );
     }
 
     @UseGuards(AuthGuard)

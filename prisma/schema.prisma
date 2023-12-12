@@ -11,14 +11,16 @@ datasource db {
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
+  id       BigInt     @id @default(autoincrement())
   nickName String
   manages  Group[]
 
   // temporary attributes
-  loginId  String @unique
-  password String
-  salt     String
+  // loginId  String @unique
+  // password String
+  // salt     String  
+  kakaoAccessToken String
+  kakaoRefreshToken String
 
   // many to many attributes
   UserGroup UserGroup[]
@@ -36,7 +38,7 @@ model Group {
   date     DateTime
   range    Int
   admin    User     @relation(fields: [adminId], references: [id])
-  adminId  Int  
+  adminId  BigInt  
 
   // many to many atrribute
   UserGroup UserGroup[]
@@ -81,7 +83,7 @@ model Category{
 // many to many relations
 model UserGroup {
   user    User  @relation(fields: [userId], references: [id])
-  userId  Int
+  userId  BigInt
   group   Group @relation(fields: [groupId], references: [pin])
   groupId Int
 
@@ -90,7 +92,7 @@ model UserGroup {
 
 model UserDish {  
   user   User @relation(fields: [userId], references: [id])
-  userId Int
+  userId BigInt
   dish   Dish @relation(fields: [dishId], references: [id])
   dishId Int
 
@@ -99,7 +101,7 @@ model UserDish {
 
 model UserCategory {  
   user   User @relation(fields: [userId], references: [id])
-  userId Int
+  userId BigInt
   category   Category @relation(fields: [categoryId], references: [id])
   categoryId Int
   score Int
