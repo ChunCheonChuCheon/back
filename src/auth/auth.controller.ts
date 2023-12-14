@@ -7,6 +7,12 @@ import { z } from 'zod';
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
+    @UseGuards(AuthGuard)
+    @Get()
+    async checkToken() {
+        return { valid: true };
+    }
+
     @Get('login/social/kakao')
     async getKakaoLoginURL() {
         return {
@@ -28,11 +34,5 @@ export class AuthController {
         return {
             token: await this.authService.signUser(id),
         };
-    }
-
-    @UseGuards(AuthGuard)
-    @Get('me')
-    async me() {
-        return 'ok';
     }
 }

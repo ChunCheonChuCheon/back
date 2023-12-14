@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+    CanActivate,
+    ExecutionContext,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
@@ -17,7 +22,7 @@ export class AuthGuard implements CanActivate {
         const request = context.switchToHttp().getRequest();
         const token = this.extractTokenFromHeader(request);
         if (!token) {
-            throw new Error('No token found');
+            throw new NotFoundException('No token found');
         }
         try {
             const payload = jwt.verify(token, this.secret);
