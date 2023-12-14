@@ -11,35 +11,33 @@ datasource db {
 }
 
 model User {
-  id       BigInt     @id @default(autoincrement())
+  id       BigInt  @id @default(autoincrement())
   nickName String
   manages  Group[]
 
-  UserGroup UserGroup[]
-  UserDish  UserDish[]
+  UserGroup    UserGroup[]
+  UserDish     UserDish[]
   UserCategory UserCategory[]
 }
 
-
-
 model Group {
-  pin      Int      @id @default(autoincrement())
-  name     String
-  locationX Decimal @db.Decimal(10, 7)
-  locationY Decimal @db.Decimal(10, 7)
-  date     DateTime
-  range    Int
-  admin    User     @relation(fields: [adminId], references: [id])
-  adminId  BigInt  
+  pin       Int      @id @default(autoincrement())
+  name      String
+  locationX Decimal  @db.Decimal(10, 7)
+  locationY Decimal  @db.Decimal(10, 7)
+  date      DateTime
+  range     Int
+  admin     User     @relation(fields: [adminId], references: [id])
+  adminId   BigInt
 
   // many to many atrribute
   UserGroup UserGroup[]
 }
 
 model Dish {
-  id   Int    @id @default(autoincrement())
-  name String  
-  img  String
+  id    Int    @id @default(autoincrement())
+  name  String
+  img   String
   price Int
 
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
@@ -52,51 +50,51 @@ model Dish {
 }
 
 model Restaurant {
-  id        Int    @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   name      String
   img       String
   locationX Decimal @db.Decimal(10, 7)
   locationY Decimal @db.Decimal(10, 7)
   openTime  String?
   closeTime String?
-  address String
+  address   String
   category  String
   menu      Dish[]
   //vector List for word embedding value
 }
 
-model Category{
+model Category {
   id   Int    @id @default(autoincrement())
   name String
-  
+
   UserCategory UserCategory[]
 }
 
 // many to many relations
 model UserGroup {
-  user    User  @relation(fields: [userId], references: [id])
+  user    User   @relation(fields: [userId], references: [id])
   userId  BigInt
-  group   Group @relation(fields: [groupId], references: [pin])
+  group   Group  @relation(fields: [groupId], references: [pin])
   groupId Int
 
   @@id([userId, groupId])
 }
 
-model UserDish {  
-  user   User @relation(fields: [userId], references: [id])
+model UserDish {
+  user   User   @relation(fields: [userId], references: [id])
   userId BigInt
-  dish   Dish @relation(fields: [dishId], references: [id])
+  dish   Dish   @relation(fields: [dishId], references: [id])
   dishId Int
 
   @@id([userId, dishId])
 }
 
-model UserCategory {  
-  user   User @relation(fields: [userId], references: [id])
-  userId BigInt
+model UserCategory {
+  user       User     @relation(fields: [userId], references: [id])
+  userId     BigInt
   category   Category @relation(fields: [categoryId], references: [id])
   categoryId Int
-  score Int
+  score      Int
 
   @@id([userId, categoryId])
 }
